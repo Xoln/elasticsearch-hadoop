@@ -96,6 +96,7 @@ public class RestClient implements Closeable, StatsAware {
     {
         mapper = new ObjectMapper();
         mapper.configure(MapperFeature.USE_ANNOTATIONS, false);
+        mapper.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
     }
 
 

@@ -28,6 +28,7 @@ import org.elasticsearch.hadoop.serialization.Generator;
 import org.elasticsearch.hadoop.thirdparty.jackson.core.JsonEncoding;
 import org.elasticsearch.hadoop.thirdparty.jackson.core.JsonFactory;
 import org.elasticsearch.hadoop.thirdparty.jackson.core.JsonGenerator;
+import org.elasticsearch.hadoop.thirdparty.jackson.core.JsonParser;
 import org.elasticsearch.hadoop.util.StringUtils;
 
 public class JacksonJsonGenerator implements Generator {
@@ -42,6 +43,7 @@ public class JacksonJsonGenerator implements Generator {
     static {
         JSON_FACTORY = new JsonFactory();
         JSON_FACTORY.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true);
+        JSON_FACTORY.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
     }
 
     public JacksonJsonGenerator(OutputStream out) {

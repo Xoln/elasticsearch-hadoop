@@ -20,6 +20,7 @@ package org.elasticsearch.hadoop.util;
 
 import org.elasticsearch.hadoop.EsHadoopIllegalArgumentException;
 import org.elasticsearch.hadoop.serialization.EsHadoopSerializationException;
+import org.elasticsearch.hadoop.thirdparty.jackson.core.JsonParser;
 import org.elasticsearch.hadoop.thirdparty.jackson.databind.ObjectMapper;
 import org.elasticsearch.hadoop.thirdparty.jackson.databind.SerializationFeature;
 
@@ -49,7 +50,9 @@ public abstract class IOUtils {
         ReflectionUtils.makeAccessible(BYTE_ARRAY_BUFFER);
     }
 
-    private static final ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+    private static final ObjectMapper mapper = new ObjectMapper()
+            .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+            .configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
 
     /**
      * This method serializes object into a json String using jackson. The object must support jackson serialization.

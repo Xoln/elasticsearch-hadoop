@@ -39,6 +39,7 @@ public class JacksonJsonParser implements Parser {
 
     static {
         JSON_FACTORY = new JsonFactory();
+        JSON_FACTORY.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
     }
 
     public JacksonJsonParser(InputStream in) {
