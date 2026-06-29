@@ -18,59 +18,21 @@
  */
 package org.elasticsearch.hadoop.serialization.json;
 
-/*
- * This file contains code from org.codehaus.jackson.map.MappingIterator.
- * All copyrights apply.
- * Persuant to section 4 of the Apache 2.0 License, the license for
- * the file follows:
- */
-
-/*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.JsonParser;
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.JsonStreamContext;
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.JsonToken;
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.map.DeserializationContext;
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.map.JsonDeserializer;
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.map.JsonMappingException;
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.map.ObjectMapper;
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.map.RuntimeJsonMappingException;
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.type.JavaType;
+import org.elasticsearch.hadoop.thirdparty.jackson.core.JsonParser;
+import org.elasticsearch.hadoop.thirdparty.jackson.core.JsonToken;
+import org.elasticsearch.hadoop.thirdparty.jackson.databind.DeserializationContext;
+import org.elasticsearch.hadoop.thirdparty.jackson.databind.JsonDeserializer;
+import org.elasticsearch.hadoop.thirdparty.jackson.databind.JsonMappingException;
+import org.elasticsearch.hadoop.thirdparty.jackson.databind.JavaType;
 
 import java.io.IOException;
 import java.util.Iterator;
 
-
-/**
- * Backported class from Jackson 1.8.8 for Jackson 1.5.2
- *
- * Iterator exposed by {@link ObjectMapper} when binding sequence of
- * objects. Extension is done to allow more convenient exposing of
- * {@link IOException} (which basic {@link Iterator} does not expose)
- *
- * @since 1.8
- */
 class BackportedJacksonMappingIterator<T> implements Iterator<T> {
-    protected final static BackportedJacksonMappingIterator<?> EMPTY_ITERATOR = new BackportedJacksonMappingIterator<Object>(null, null, null, null);
 
     protected final JavaType _type;
-
     protected final DeserializationContext _context;
-
     protected final JsonDeserializer<T> _deserializer;
-
     protected final JsonParser _parser;
 
     @SuppressWarnings("unchecked")
@@ -80,35 +42,17 @@ class BackportedJacksonMappingIterator<T> implements Iterator<T> {
         _context = ctxt;
         _deserializer = (JsonDeserializer<T>) deser;
 
-        /* One more thing: if we are at START_ARRAY (but NOT root-level
-         * one!), advance to next token (to allow matching END_ARRAY)
-         */
         if (jp != null && jp.getCurrentToken() == JsonToken.START_ARRAY) {
-            JsonStreamContext sc = jp.getParsingContext();
-            // safest way to skip current token is to clear it (so we'll advance soon)
-            if (!sc.inRoot()) {
+            if (!jp.getParsingContext().inRoot()) {
                 jp.clearCurrentToken();
             }
         }
     }
 
-    @SuppressWarnings("unchecked")
-    protected static <T> BackportedJacksonMappingIterator<T> emptyIterator() {
-        return (BackportedJacksonMappingIterator<T>) EMPTY_ITERATOR;
-    }
-
-    /*
-    /**********************************************************
-    /* Basic iterator impl
-    /**********************************************************
-     */
-
     @Override
     public boolean hasNext() {
         try {
             return hasNextValue();
-        } catch (JsonMappingException e) {
-            throw new RuntimeJsonMappingException(e.getMessage(), e);
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -118,8 +62,6 @@ class BackportedJacksonMappingIterator<T> implements Iterator<T> {
     public T next() {
         try {
             return nextValue();
-        } catch (JsonMappingException e) {
-            throw new RuntimeJsonMappingException(e.getMessage(), e);
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -130,29 +72,17 @@ class BackportedJacksonMappingIterator<T> implements Iterator<T> {
         throw new UnsupportedOperationException();
     }
 
-    /*
-    /**********************************************************
-    /* Extended API
-    /**********************************************************
-     */
-
-    /**
-     * Equivalent of {@link #next} but one that may throw checked
-     * exceptions from Jackson due to invalid input.
-     */
     public boolean hasNextValue() throws IOException {
         if (_parser == null) {
             return false;
         }
         JsonToken t = _parser.getCurrentToken();
-        if (t == null) { // un-initialized or cleared; find next
+        if (t == null) {
             t = _parser.nextToken();
-            // If EOF, no more
             if (t == null) {
                 _parser.close();
                 return false;
             }
-            // And similarly if we hit END_ARRAY; except that we won't close parser
             if (t == JsonToken.END_ARRAY) {
                 return false;
             }
@@ -162,7 +92,6 @@ class BackportedJacksonMappingIterator<T> implements Iterator<T> {
 
     public T nextValue() throws IOException {
         T result = _deserializer.deserialize(_parser, _context);
-        // Need to consume the token too
         _parser.clearCurrentToken();
         return result;
     }

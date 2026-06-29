@@ -18,7 +18,7 @@
  */
 package org.elasticsearch.hadoop.serialization.json;
 
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.JsonParser;
+import org.elasticsearch.hadoop.thirdparty.jackson.core.JsonParser;
 
 import java.io.IOException;
 import java.util.Iterator;

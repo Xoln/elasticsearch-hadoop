@@ -20,21 +20,18 @@ package org.elasticsearch.hadoop.serialization.json;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.util.Deque;
 import java.util.LinkedList;
 
-import org.apache.commons.logging.LogFactory;
 import org.elasticsearch.hadoop.serialization.EsHadoopSerializationException;
 import org.elasticsearch.hadoop.serialization.Generator;
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.JsonEncoding;
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.JsonFactory;
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.JsonGenerator;
+import org.elasticsearch.hadoop.thirdparty.jackson.core.JsonEncoding;
+import org.elasticsearch.hadoop.thirdparty.jackson.core.JsonFactory;
+import org.elasticsearch.hadoop.thirdparty.jackson.core.JsonGenerator;
 import org.elasticsearch.hadoop.util.StringUtils;
 
 public class JacksonJsonGenerator implements Generator {
 
-    private static final boolean HAS_UTF_8;
     private static final JsonFactory JSON_FACTORY;
     private final JsonGenerator generator;
     private final OutputStream out;
@@ -43,18 +40,6 @@ public class JacksonJsonGenerator implements Generator {
     private String currentName;
 
     static {
-        boolean hasMethod = false;
-        try {
-            Method m = JsonGenerator.class.getMethod("writeUTF8String", byte[].class, int.class, int.class);
-            hasMethod = true;
-        } catch (NoSuchMethodException ex) {
-        }
-        HAS_UTF_8 = hasMethod;
-        if (!HAS_UTF_8) {
-            LogFactory.getLog(JacksonJsonGenerator.class).warn(
-                    "Old Jackson version (pre-1.7) detected; consider upgrading to improve performance");
-        }
-
         JSON_FACTORY = new JsonFactory();
         JSON_FACTORY.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true);
     }
@@ -62,8 +47,7 @@ public class JacksonJsonGenerator implements Generator {
     public JacksonJsonGenerator(OutputStream out) {
         try {
             this.out = out;
-            // use dedicated method to lower Jackson requirement
-            this.generator = JSON_FACTORY.createJsonGenerator(out, JsonEncoding.UTF8);
+            this.generator = JSON_FACTORY.createGenerator(out, JsonEncoding.UTF8);
         } catch (IOException ex) {
             throw new EsHadoopSerializationException(ex);
         }
@@ -144,12 +128,7 @@ public class JacksonJsonGenerator implements Generator {
     @Override
     public Generator writeUTF8String(byte[] text, int offset, int len) {
         try {
-            if (HAS_UTF_8) {
-                generator.writeUTF8String(text, offset, len);
-            }
-            else {
-                generator.writeString(new String(text, offset, len, StringUtils.UTF_8));
-            }
+            generator.writeUTF8String(text, offset, len);
             return this;
         } catch (IOException ex) {
             throw new EsHadoopSerializationException(ex);
@@ -276,7 +255,6 @@ public class JacksonJsonGenerator implements Generator {
 
     @Override
     public Object getOutputTarget() {
-        //return generator.getOutputTarget();
         return out;
     }
 

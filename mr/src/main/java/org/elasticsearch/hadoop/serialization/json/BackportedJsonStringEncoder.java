@@ -39,8 +39,8 @@ package org.elasticsearch.hadoop.serialization.json;
  * limitations under the License.
  */
 
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.util.BufferRecycler;
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.util.TextBuffer;
+import org.elasticsearch.hadoop.thirdparty.jackson.core.util.BufferRecycler;
+import org.elasticsearch.hadoop.thirdparty.jackson.core.util.TextBuffer;
 
 import java.lang.ref.SoftReference;
 

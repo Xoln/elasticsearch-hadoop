@@ -21,29 +21,25 @@ package org.elasticsearch.hadoop.serialization.json;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.JsonParser;
-import org.elasticsearch.hadoop.thirdparty.codehaus.jackson.map.ObjectMapper;
-import org.elasticsearch.hadoop.util.ObjectUtils;
+import org.elasticsearch.hadoop.thirdparty.jackson.core.JsonParser;
+import org.elasticsearch.hadoop.thirdparty.jackson.core.JsonToken;
+import org.elasticsearch.hadoop.thirdparty.jackson.databind.ObjectMapper;
 
 public abstract class JsonFactory {
 
-    private static final boolean HAS_OBJECT_READER = ObjectUtils.isClassPresent(
-            "org.codehaus.jackson.map.ObjectReader", JsonFactory.class.getClassLoader());
-
     public static <T> ObjectReader objectReader(ObjectMapper mapper, Class<T> clazz) {
-        return (HAS_OBJECT_READER ? JacksonObjectReader.reader(mapper, clazz) : BackportedObjectReader.create(mapper, clazz));
-    }
+        return new ObjectReader() {
+            private final org.elasticsearch.hadoop.thirdparty.jackson.databind.ObjectReader or = mapper.readerFor(clazz);
 
-    private static class JacksonObjectReader {
-        public static <E> ObjectReader reader(final ObjectMapper mapper, final Class<E> clazz) {
-            return new ObjectReader() {
-                private final org.elasticsearch.hadoop.thirdparty.codehaus.jackson.map.ObjectReader or = mapper.reader(clazz);
-
-                @Override
-                public <T> Iterator<T> readValues(JsonParser parser) throws IOException {
-                    return or.readValues(parser);
+            @Override
+            public <T> Iterator<T> readValues(JsonParser parser) throws IOException {
+                // Advance past START_ARRAY to the first element so that Jackson 2.x's
+                // MappingIterator correctly iterates array elements individually.
+                if (parser.getCurrentToken() == JsonToken.START_ARRAY) {
+                    parser.nextToken();
                 }
-            };
-        }
+                return or.readValues(parser);
+            }
+        };
     }
 }

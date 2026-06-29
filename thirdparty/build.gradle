@@ -21,12 +21,15 @@ BuildPlugin.disableTransitiveDependencies(project, configurations.shaded)
 
 dependencies {
     shaded("commons-httpclient:commons-httpclient:3.0.1")
-    shaded("org.codehaus.jackson:jackson-mapper-asl:${project.ext.jacksonVersion}")
-    shaded("org.codehaus.jackson:jackson-core-asl:${project.ext.jacksonVersion}")
+    shaded("com.fasterxml.jackson.core:jackson-core:${project.ext.jacksonVersion}")
+    shaded("com.fasterxml.jackson.core:jackson-databind:${project.ext.jacksonDatabindVersion}")
+    shaded("com.fasterxml.jackson.core:jackson-annotations:${project.ext.jacksonVersion}")
 }
 
 shadowJar {
     configurations = [project.configurations.shaded]
     relocate 'org.apache.commons.httpclient', 'org.elasticsearch.hadoop.thirdparty.apache.commons.httpclient'
-    relocate 'org.codehaus.jackson', 'org.elasticsearch.hadoop.thirdparty.codehaus.jackson'
+    relocate 'com.fasterxml.jackson', 'org.elasticsearch.hadoop.thirdparty.jackson'
+    exclude 'META-INF/services/com.fasterxml.jackson.*'
+    exclude 'META-INF/maven/com.fasterxml.jackson.*/**'
 }
